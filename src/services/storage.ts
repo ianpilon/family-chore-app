@@ -74,48 +74,45 @@ export const uploadImage = async (
   metadata?: { taskId?: string }
 ): Promise<UploadResult> => {
   try {
-    // Check if Firebase is properly initialized
     if (!storage) {
-      console.warn('Firebase storage not initialized, using development fallback');
-      return mockUploadImage(file);
+      console.warn('Firebase storage not initialized');
+      return {
+        success: false,
+        error: 'Firebase storage not initialized',
+        url: ''
+      };
     }
 
-    const compressedFile = await compressImage(file);
     const timestamp = Date.now();
     const filename = `${type}s/${userId}/${timestamp}${metadata?.taskId ? `_${metadata.taskId}` : ''}.jpg`;
     const storageRef = ref(storage, filename);
     
-    // Add custom metadata for CORS
-    const customMetadata = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    };
-    
     const uploadMetadata = {
       contentType: 'image/jpeg',
-      customMetadata,
+      customMetadata: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
+      }
     };
-    
+
+    console.log('Uploading image...', { filename });
+    const compressedFile = await compressImage(file);
     const snapshot = await uploadBytes(storageRef, compressedFile, uploadMetadata);
-    const url = await getDownloadURL(snapshot.ref);
+    console.log('Image uploaded successfully');
     
+    const url = await getDownloadURL(snapshot.ref);
+    console.log('Download URL obtained:', url);
+
     return {
-      url,
-      success: true
+      success: true,
+      url
     };
   } catch (error) {
     console.error('Error uploading image:', error);
-    
-    // In development, fall back to local storage
-    if (import.meta.env.DEV) {
-      console.warn('Falling back to development storage');
-      return mockUploadImage(file);
-    }
-    
     return {
-      url: '',
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to upload image'
+      error: error instanceof Error ? error.message : 'Failed to upload image',
+      url: ''
     };
   }
 };
