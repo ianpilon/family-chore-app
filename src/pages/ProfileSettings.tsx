@@ -29,8 +29,11 @@ export function ProfileSettings() {
     }
   };
 
-  const handleImageCapture = (url: string) => {
-    setFormData(prev => ({ ...prev, avatar: url }));
+  const handleImageCapture = async (url: string) => {
+    if (!currentUser) return;
+    const updatedData = { ...formData, avatar: url };
+    await updateUserProfile(currentUser.id, updatedData);
+    setFormData(updatedData);
     setShowCamera(false);
   };
 
@@ -52,10 +55,6 @@ export function ProfileSettings() {
                     src={formData.avatar}
                     alt={formData.name}
                     className="w-32 h-32 rounded-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}`;
-                    }}
                   />
                 </div>
                 

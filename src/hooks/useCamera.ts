@@ -2,9 +2,10 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 
 interface UseCameraOptions {
   onError?: (error: string) => void;
+  facingMode?: 'user' | 'environment';
 }
 
-export function useCamera({ onError }: UseCameraOptions = {}) {
+export function useCamera({ onError, facingMode = 'user' }: UseCameraOptions = {}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -29,7 +30,7 @@ export function useCamera({ onError }: UseCameraOptions = {}) {
       // Request camera access with specific constraints
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: 'user',
+          facingMode,
           width: { ideal: 1280 },
           height: { ideal: 720 }
         },
@@ -69,7 +70,7 @@ export function useCamera({ onError }: UseCameraOptions = {}) {
       onError?.(message);
       setIsReady(false);
     }
-  }, [onError, stopCamera]);
+  }, [onError, facingMode, stopCamera]);
 
   useEffect(() => {
     mountedRef.current = true;
