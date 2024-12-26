@@ -1,0 +1,14 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null 
+                  || request.origin.matches('http://localhost:.*')
+                  || request.origin.matches('https://family-task-manager-367ac.web.app')
+                  || request.origin.matches('https://family-task-manager-367ac.firebaseapp.com')
+                  || request.origin.matches('https://family-task-manager-367ac.firebasestorage.app');
+    }
+  }
+}
