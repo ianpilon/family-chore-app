@@ -23,7 +23,7 @@ export function usePhotoCapture(
   });
   
   const handleError = useCallback((error: string) => {
-    setState(prev => ({ ...prev, error }));
+    setState(prev => ({ ...prev, error, isCapturing: false, isUploading: false }));
   }, []);
 
   const { videoRef, isReady, start, stop } = useCamera({ onError: handleError });
@@ -34,18 +34,12 @@ export function usePhotoCapture(
 
   const captureAndUpload = useCallback(async () => {
     if (!videoRef.current || !isReady) {
-      setState(prev => ({ 
-        ...prev, 
-        error: 'Camera not ready',
-        isCapturing: false,
-        isUploading: false,
-        progress: 0
-      }));
+      handleError('Camera not ready');
       return null;
     }
 
     try {
-      // Capture phase
+      // Start capture phase
       setState(prev => ({ 
         ...prev, 
         isCapturing: true, 
@@ -57,40 +51,38 @@ export function usePhotoCapture(
       const canvas = await captureVideoFrame(videoRef.current);
       const blob = await canvasToBlob(canvas);
 
-      // Upload phase
+      // Start upload phase
       setState(prev => ({ 
         ...prev, 
         isCapturing: false,
         isUploading: true,
+        error: null,
         progress: 0
       }));
 
       const result = await uploadImage(blob, userId, type, metadata);
 
-      if (!result.success || !result.url) {
-        throw new Error(result.error || 'Failed to upload image');
+      if (!result.success) {
+        handleError(result.error || 'Failed to upload image');
+        return null;
       }
+
+      // Success - reset state
+      setState(prev => ({ 
+        ...prev, 
+        isCapturing: false,
+        isUploading: false,
+        error: null,
+        progress: 100
+      }));
 
       return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to process photo';
-      setState(prev => ({ 
-        ...prev, 
-        error: message,
-        isCapturing: false,
-        isUploading: false,
-        progress: 0
-      }));
+      handleError(message);
       return null;
-    } finally {
-      setState(prev => ({ 
-        ...prev, 
-        isCapturing: false, 
-        isUploading: false,
-        progress: 0
-      }));
     }
-  }, [videoRef, isReady, userId, type, metadata]);
+  }, [videoRef, isReady, userId, type, metadata, handleError]);
 
   return {
     videoRef,

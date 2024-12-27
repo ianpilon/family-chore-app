@@ -75,7 +75,11 @@ export const uploadImage = async (
 ): Promise<UploadResult> => {
   try {
     if (!storage) {
-      throw new Error('Firebase storage not initialized. Check your Firebase configuration.');
+      return {
+        success: false,
+        error: 'Firebase storage not initialized',
+        url: ''
+      };
     }
 
     const timestamp = Date.now();
@@ -104,7 +108,10 @@ export const uploadImage = async (
     };
   } catch (error) {
     console.error('Error uploading image:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
-    throw new Error(`Image upload failed: ${errorMessage}`);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to upload image',
+      url: ''
+    };
   }
 };

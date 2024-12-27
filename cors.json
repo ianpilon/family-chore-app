@@ -1,7 +1,7 @@
 [
   {
     "origin": [
-      "http://localhost:5173",
+      "http://localhost:*",
       "https://family-chore-app.vercel.app",
       "https://family-chore-app-git-main-ianpilon.vercel.app",
       "https://family-chore-app-ianpilon.vercel.app"
