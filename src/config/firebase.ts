@@ -3,9 +3,6 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getFirestore } from 'firebase/firestore';
 
-// Force development mode for storage
-const USE_MOCK_STORAGE = true;
-
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -24,7 +21,7 @@ let googleProvider;
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
-  storage = USE_MOCK_STORAGE && import.meta.env.DEV ? null : getStorage(app);
+  storage = getStorage(app);
   db = getFirestore(app);
   
   // Initialize Google Auth Provider
@@ -33,7 +30,8 @@ try {
     prompt: 'select_account'
   });
 } catch (error) {
-  console.warn('Firebase initialization failed:', error);
+  console.error('Firebase initialization failed:', error);
+  throw error; // Re-throw to make initialization failures more visible
 }
 
 export { auth, storage, db, googleProvider };
